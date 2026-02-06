@@ -1,6 +1,7 @@
 /**
- * Format a time string to 00:00.000 format (mm:ss.xxx with zero-padded minutes).
- * Accepts various inputs like "42.350", "0:42.350", "42350", etc.
+ * Format a time string to 00:00.000 format (mm:ss.xxx).
+ * Accepts: "42.350", "0:42.350", "20444", "0020444", "712500", etc.
+ * Pure digits are split as: [remaining=min][2 digits=sec][3 digits=ms]
  */
 export function formatTime(input: string): string {
   if (!input || input === '--') return '';
@@ -22,17 +23,13 @@ export function formatTime(input: string): string {
     return `00:${sec.padStart(2, '0')}.${ms.padEnd(3, '0')}`;
   }
 
-  // Just digits — interpret as milliseconds-included
+  // Pure digits — split from the right: last 3 = ms, next 2 = sec, rest = min
   if (/^\d+$/.test(cleaned)) {
-    const num = parseInt(cleaned);
-    if (num > 100000) {
-      // e.g. 712500 → 07:12.500
-      const totalMs = num;
-      const mins = Math.floor(totalMs / 60000);
-      const secs = Math.floor((totalMs % 60000) / 1000);
-      const ms = totalMs % 1000;
-      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
-    }
+    const padded = cleaned.padStart(5, '0');
+    const ms = padded.slice(-3);
+    const sec = padded.slice(-5, -3);
+    const min = padded.slice(0, -5) || '0';
+    return `${min.padStart(2, '0')}:${sec}.${ms}`;
   }
 
   return cleaned;
@@ -55,10 +52,7 @@ export function formatGap(input: string): string {
   const cleaned = input.replace(/[^\d.+\-]/g, '');
   if (!cleaned || cleaned === '+' || cleaned === '-') return '--';
 
-  // Already has + prefix
   if (cleaned.startsWith('+')) return cleaned;
-
-  // Add + prefix if it's a number
   if (/^\d/.test(cleaned)) return `+${cleaned}`;
 
   return cleaned;

@@ -13,6 +13,7 @@ import {
   SessionStatus,
 } from '@/lib/types';
 import { CLASS_COLORS } from '@/lib/constants';
+import { formatTime } from '@/lib/time-utils';
 
 interface FormResult {
   driverId: string;
@@ -144,7 +145,7 @@ export default function RaceInputPage() {
         driverId: r.driverId,
         driverName: r.driverName,
         position: r.position,
-        bestLap: r.bestLap,
+        bestLap: formatTime(r.bestLap),
       }));
       saveQualifyingResults(raceId, qualResults, autoStatus);
     } else {
@@ -152,8 +153,8 @@ export default function RaceInputPage() {
         driverId: r.driverId,
         driverName: r.driverName,
         position: r.position,
-        bestLap: r.bestLap,
-        totalTime: r.totalTime,
+        bestLap: formatTime(r.bestLap),
+        totalTime: formatTime(r.totalTime),
         gap: r.gap || '--',
       }));
       saveRaceResults(raceId, raceResults, autoStatus);

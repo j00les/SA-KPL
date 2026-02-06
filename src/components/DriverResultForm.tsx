@@ -2,6 +2,7 @@
 
 import { Driver, RaceClass } from '@/lib/types';
 import { CLASS_COLORS } from '@/lib/constants';
+import { formatTime } from '@/lib/time-utils';
 
 interface DriverResultFormProps {
   driver: Driver;
@@ -26,6 +27,14 @@ export default function DriverResultForm({
   onRemove,
 }: DriverResultFormProps) {
   const classColor = CLASS_COLORS[raceClass];
+
+  const handleTimeBlur = (field: string, value: string) => {
+    if (!value) return;
+    const formatted = formatTime(value);
+    if (formatted && formatted !== value) {
+      onChange(field, formatted);
+    }
+  };
 
   return (
     <div
@@ -88,7 +97,8 @@ export default function DriverResultForm({
             placeholder="00:00.000"
             value={result.bestLap}
             onChange={(e) => onChange('bestLap', e.target.value)}
-            className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            onBlur={() => handleTimeBlur('bestLap', result.bestLap)}
+            className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 font-mono text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           />
         </div>
 
@@ -104,7 +114,8 @@ export default function DriverResultForm({
               placeholder="00:00.000"
               value={result.totalTime}
               onChange={(e) => onChange('totalTime', e.target.value)}
-              className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              onBlur={() => handleTimeBlur('totalTime', result.totalTime)}
+              className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 font-mono text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
           </div>
         )}
@@ -121,7 +132,7 @@ export default function DriverResultForm({
               placeholder="--"
               value={result.gap}
               onChange={(e) => onChange('gap', e.target.value)}
-              className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 font-mono text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
           </div>
         )}
