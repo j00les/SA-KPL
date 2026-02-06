@@ -16,7 +16,7 @@ function formatTimeOnBlur(raw: string): string {
   return cleaned;
 }
 
-export default function TimeInput({ value, onChange, placeholder = '0:00.000', label }: TimeInputProps) {
+export default function TimeInput({ value, onChange, placeholder = '00:00.000', label }: TimeInputProps) {
   const handleBlur = () => {
     const formatted = formatTimeOnBlur(value);
     if (formatted !== value) {

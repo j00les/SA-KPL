@@ -85,7 +85,7 @@ export default function DriverResultForm({
           <input
             type="text"
             inputMode="decimal"
-            placeholder="0:00.000"
+            placeholder="00:00.000"
             value={result.bestLap}
             onChange={(e) => onChange('bestLap', e.target.value)}
             className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -101,7 +101,7 @@ export default function DriverResultForm({
             <input
               type="text"
               inputMode="decimal"
-              placeholder="0:00.000"
+              placeholder="00:00.000"
               value={result.totalTime}
               onChange={(e) => onChange('totalTime', e.target.value)}
               className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
