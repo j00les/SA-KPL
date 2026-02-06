@@ -29,9 +29,13 @@ export default function DriverResultForm({
   const classColor = CLASS_COLORS[raceClass];
 
   const handleTimeChange = (field: string, value: string) => {
-    // Only allow digits, colon, dot — max 7 raw digits
-    const digitsOnly = value.replace(/[^\d]/g, '');
-    if (digitsOnly.length > 7) return;
+    // If formatted (has : or .), allow free editing within the format
+    // If raw digits only, cap at 7
+    const hasFormatting = /[:.]/.test(value);
+    if (!hasFormatting) {
+      const digitsOnly = value.replace(/[^\d]/g, '');
+      if (digitsOnly.length > 7) return;
+    }
     onChange(field, value);
   };
 

@@ -13,7 +13,7 @@ import {
   SessionStatus,
 } from '@/lib/types';
 import { CLASS_COLORS } from '@/lib/constants';
-import { formatTime } from '@/lib/time-utils';
+import { formatTime, formatGap } from '@/lib/time-utils';
 
 interface FormResult {
   driverId: string;
@@ -73,18 +73,27 @@ export default function RaceInputPage() {
     setInitialized(true);
   }, [session, initialized]);
 
-  // Sync newly added/removed drivers
+  // Sync newly added/removed drivers — use functional updater to avoid stale closure
   useEffect(() => {
     if (!session || !initialized) return;
 
-    const currentIds = new Set(results.map((r) => r.driverId));
     const sessionIds = new Set(session.drivers.map((d) => d.id));
 
-    // Add new drivers
-    const newDrivers = session.drivers.filter((d) => !currentIds.has(d.id));
-    if (newDrivers.length > 0) {
-      setResults((prev) => [
-        ...prev,
+    setResults((prev) => {
+      const currentIds = new Set(prev.map((r) => r.driverId));
+
+      // Add new drivers
+      const newDrivers = session.drivers.filter((d) => !currentIds.has(d.id));
+
+      // Remove deleted drivers
+      const filtered = prev.filter((r) => sessionIds.has(r.driverId));
+
+      if (newDrivers.length === 0 && filtered.length === prev.length) {
+        return prev; // No changes
+      }
+
+      return [
+        ...filtered,
         ...newDrivers.map((d) => ({
           driverId: d.id,
           driverName: d.name,
@@ -93,14 +102,8 @@ export default function RaceInputPage() {
           totalTime: '',
           gap: '',
         })),
-      ]);
-    }
-
-    // Remove deleted drivers
-    const removedIds = [...currentIds].filter((id) => !sessionIds.has(id));
-    if (removedIds.length > 0) {
-      setResults((prev) => prev.filter((r) => !removedIds.includes(r.driverId)));
-    }
+      ];
+    });
   }, [session?.drivers, initialized]);
 
   const handleFieldChange = useCallback(
@@ -155,7 +158,7 @@ export default function RaceInputPage() {
         position: r.position,
         bestLap: formatTime(r.bestLap),
         totalTime: formatTime(r.totalTime),
-        gap: r.gap || '--',
+        gap: formatGap(r.gap),
       }));
       saveRaceResults(raceId, raceResults, autoStatus);
     }
