@@ -1,0 +1,22 @@
+{
+  "name": "KPL Round 2 — Race Timing",
+  "short_name": "KPL R2",
+  "description": "Kart.Inc Pro League Round 2 race timing system",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2D2D2D",
+  "theme_color": "#E10600",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#2D2D2D"/>
+  <rect x="0" y="0" width="512" height="8" fill="#E10600"/>
+  <rect x="0" y="504" width="512" height="8" fill="#E10600"/>
+  <text x="256" y="200" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="80" font-weight="bold">KPL</text>
+  <text x="256" y="300" text-anchor="middle" fill="#E10600" font-family="Arial,sans-serif" font-size="60" font-weight="bold">R2</text>
+  <rect x="120" y="340" width="272" height="4" fill="#E10600" rx="2"/>
+  <text x="256" y="400" text-anchor="middle" fill="#999" font-family="Arial,sans-serif" font-size="30">TIMING</text>
+</svg>
