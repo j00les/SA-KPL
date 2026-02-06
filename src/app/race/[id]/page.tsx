@@ -193,7 +193,8 @@ export default function RaceInputPage() {
   return (
     <div className="min-h-screen bg-[#F5F5F5] pb-24">
       {/* Header */}
-      <header className="bg-[#2D2D2D] sticky top-0 z-30">
+      <header className="bg-[#1A1A1A] sticky top-0 z-30">
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E10600] via-[#FFE600] to-[#E10600]" />
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={() => router.push('/')}
