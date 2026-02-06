@@ -31,7 +31,6 @@ export interface QualifyingSession {
   type: 'qualifying';
   raceClass: RaceClass;
   label: string;
-  duration: string; // "7m 30s"
   drivers: Driver[];
   results: QualifyingResult[];
   status: SessionStatus;
@@ -42,7 +41,6 @@ export interface RaceSession {
   type: SessionType;
   raceClass: RaceClass;
   label: string;
-  laps: number;
   drivers: Driver[];
   results: RaceResult[];
   status: SessionStatus;

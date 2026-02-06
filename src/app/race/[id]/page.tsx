@@ -8,12 +8,8 @@ import DriverResultForm from '@/components/DriverResultForm';
 import AddDriverInline from '@/components/AddDriverInline';
 import ConnectionStatus from '@/components/ConnectionStatus';
 import {
-  Session,
-  QualifyingSession,
-  RaceSession,
-  QualifyingResult,
   RaceResult,
-  Driver,
+  QualifyingResult,
   SessionStatus,
 } from '@/lib/types';
 import { CLASS_COLORS } from '@/lib/constants';
@@ -186,9 +182,6 @@ export default function RaceInputPage() {
   }
 
   const classColor = CLASS_COLORS[session.raceClass];
-  const subtitle = isQualifying
-    ? `${(session as QualifyingSession).duration} session`
-    : `${(session as RaceSession).laps} Laps`;
 
   return (
     <div className="min-h-screen bg-[#F5F5F5] pb-24">
@@ -225,7 +218,6 @@ export default function RaceInputPage() {
             />
             <h1 className="text-white font-bold text-lg">{session.label}</h1>
           </div>
-          <p className="text-gray-400 text-sm mt-0.5 ml-5">{subtitle}</p>
         </div>
       </header>
 
