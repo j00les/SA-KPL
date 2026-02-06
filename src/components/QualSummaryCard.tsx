@@ -7,20 +7,17 @@ import StatusBadge from './StatusBadge';
 
 interface QualSummaryCardProps {
   session: QualifyingSession;
+  editable?: boolean;
 }
 
-export default function QualSummaryCard({ session }: QualSummaryCardProps) {
+export default function QualSummaryCard({ session, editable = false }: QualSummaryCardProps) {
   const classColor = CLASS_COLORS[session.raceClass];
   const sorted = [...session.results]
     .filter((r) => r.position !== null)
     .sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
-  return (
-    <Link
-      href={`/race/${session.id}`}
-      className="block rounded-lg bg-white shadow-sm overflow-hidden active:bg-gray-50 transition-colors"
-      style={{ borderLeft: `4px solid ${classColor}` }}
-    >
+  const content = (
+    <>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div>
@@ -61,6 +58,27 @@ export default function QualSummaryCard({ session }: QualSummaryCardProps) {
           </table>
         )}
       </div>
-    </Link>
+    </>
+  );
+
+  if (editable) {
+    return (
+      <Link
+        href={`/race/${session.id}`}
+        className="block rounded-lg bg-white shadow-sm overflow-hidden active:bg-gray-50 transition-colors"
+        style={{ borderLeft: `4px solid ${classColor}` }}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className="rounded-lg bg-white shadow-sm overflow-hidden"
+      style={{ borderLeft: `4px solid ${classColor}` }}
+    >
+      {content}
+    </div>
   );
 }

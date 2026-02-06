@@ -197,7 +197,7 @@ export default function RaceInputPage() {
         <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#E10600] via-[#FFE600] to-[#E10600]" />
         <div className="flex items-center justify-between px-4 py-3">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/admin')}
             className="text-white flex items-center gap-1 text-sm font-medium active:opacity-70"
           >
             <svg

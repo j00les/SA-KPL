@@ -8,7 +8,7 @@ import RaceSummaryCard from '@/components/RaceSummaryCard';
 import QualSummaryCard from '@/components/QualSummaryCard';
 import { useRaceData } from '@/hooks/useRaceData';
 
-export default function PublicDashboard() {
+export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabId>('qualifying');
   const { data } = useRaceData();
 
@@ -39,8 +39,8 @@ export default function PublicDashboard() {
           <h1 className="text-white text-lg font-bold tracking-wider">
             KPL ROUND 2
           </h1>
-          <span className="text-[#FFE600] text-[10px] font-bold tracking-widest uppercase opacity-80">
-            Live Results
+          <span className="text-[#FFE600] text-[10px] font-bold tracking-widest uppercase border border-[#FFE600]/40 rounded px-1.5 py-0.5">
+            Timing Operator
           </span>
         </div>
       </header>
@@ -56,17 +56,17 @@ export default function PublicDashboard() {
           <>
             {activeTab === 'qualifying' &&
               data.qualifying.map((session) => (
-                <QualSummaryCard key={session.id} session={session} />
+                <QualSummaryCard key={session.id} session={session} editable />
               ))}
 
             {activeTab === 'heats' &&
               data.heatsAndRace1.map((session) => (
-                <RaceSummaryCard key={session.id} session={session} />
+                <RaceSummaryCard key={session.id} session={session} editable />
               ))}
 
             {activeTab === 'final' &&
               data.finalAndRace2.map((session) => (
-                <RaceSummaryCard key={session.id} session={session} />
+                <RaceSummaryCard key={session.id} session={session} editable />
               ))}
           </>
         )}

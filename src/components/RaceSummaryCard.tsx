@@ -7,20 +7,17 @@ import StatusBadge from './StatusBadge';
 
 interface RaceSummaryCardProps {
   session: RaceSession;
+  editable?: boolean;
 }
 
-export default function RaceSummaryCard({ session }: RaceSummaryCardProps) {
+export default function RaceSummaryCard({ session, editable = false }: RaceSummaryCardProps) {
   const classColor = CLASS_COLORS[session.raceClass];
   const sorted = [...session.results]
     .filter((r) => r.position !== null)
     .sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
-  return (
-    <Link
-      href={`/race/${session.id}`}
-      className="block rounded-lg bg-white shadow-sm overflow-hidden active:bg-gray-50 transition-colors"
-      style={{ borderLeft: `4px solid ${classColor}` }}
-    >
+  const content = (
+    <>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div>
@@ -65,6 +62,27 @@ export default function RaceSummaryCard({ session }: RaceSummaryCardProps) {
           </table>
         )}
       </div>
-    </Link>
+    </>
+  );
+
+  if (editable) {
+    return (
+      <Link
+        href={`/race/${session.id}`}
+        className="block rounded-lg bg-white shadow-sm overflow-hidden active:bg-gray-50 transition-colors"
+        style={{ borderLeft: `4px solid ${classColor}` }}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className="rounded-lg bg-white shadow-sm overflow-hidden"
+      style={{ borderLeft: `4px solid ${classColor}` }}
+    >
+      {content}
+    </div>
   );
 }
