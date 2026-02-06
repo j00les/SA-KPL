@@ -13,7 +13,6 @@ interface RaceSummaryCardProps {
 export default function RaceSummaryCard({ session, editable = false }: RaceSummaryCardProps) {
   const classColor = CLASS_COLORS[session.raceClass];
   const sorted = [...session.results]
-    .filter((r) => r.position !== null)
     .sort((a, b) => (a.position ?? 999) - (b.position ?? 999));
 
   const content = (
@@ -42,7 +41,7 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
               {sorted.map((r) => (
                 <tr key={r.driverId} className="border-t border-gray-50">
                   <td className="py-1.5 pr-2 font-bold text-gray-900">
-                    {r.position}
+                    {r.position ?? '—'}
                   </td>
                   <td className="py-1.5 pr-2 font-medium text-gray-700 truncate max-w-[120px]">
                     {r.driverName}

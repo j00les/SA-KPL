@@ -23,12 +23,12 @@ export function formatTime(input: string): string {
     return `00:${sec.padStart(2, '0')}.${ms.padEnd(3, '0')}`;
   }
 
-  // Pure digits — split from the right: last 3 = ms, next 2 = sec, rest = min
+  // Pure digits — max 7 digits (mmssmmm), split from the right
   if (/^\d+$/.test(cleaned)) {
-    const padded = cleaned.padStart(5, '0');
-    const ms = padded.slice(-3);
-    const sec = padded.slice(-5, -3);
-    const min = padded.slice(0, -5) || '0';
+    const trimmed = cleaned.slice(-7).padStart(5, '0');
+    const ms = trimmed.slice(-3);
+    const sec = trimmed.slice(-5, -3);
+    const min = trimmed.slice(0, -5) || '0';
     return `${min.padStart(2, '0')}:${sec}.${ms}`;
   }
 

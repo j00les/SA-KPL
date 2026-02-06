@@ -28,6 +28,13 @@ export default function DriverResultForm({
 }: DriverResultFormProps) {
   const classColor = CLASS_COLORS[raceClass];
 
+  const handleTimeChange = (field: string, value: string) => {
+    // Only allow digits, colon, dot — max 7 raw digits
+    const digitsOnly = value.replace(/[^\d]/g, '');
+    if (digitsOnly.length > 7) return;
+    onChange(field, value);
+  };
+
   const handleTimeBlur = (field: string, value: string) => {
     if (!value) return;
     const formatted = formatTime(value);
@@ -96,7 +103,7 @@ export default function DriverResultForm({
             inputMode="decimal"
             placeholder="00:00.000"
             value={result.bestLap}
-            onChange={(e) => onChange('bestLap', e.target.value)}
+            onChange={(e) => handleTimeChange('bestLap', e.target.value)}
             onBlur={() => handleTimeBlur('bestLap', result.bestLap)}
             className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 font-mono text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           />
@@ -113,7 +120,7 @@ export default function DriverResultForm({
               inputMode="decimal"
               placeholder="00:00.000"
               value={result.totalTime}
-              onChange={(e) => onChange('totalTime', e.target.value)}
+              onChange={(e) => handleTimeChange('totalTime', e.target.value)}
               onBlur={() => handleTimeBlur('totalTime', result.totalTime)}
               className="h-12 w-full rounded-md border border-gray-200 bg-gray-50 px-3 font-mono text-base font-medium text-gray-900 placeholder:text-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
