@@ -86,10 +86,20 @@ export function initDB() {
   const roundCols = db.query("PRAGMA table_info(rounds)").all() as { name: string }[];
   const hasTabLabels = roundCols.some((c) => c.name === 'tab1_label');
   if (!hasTabLabels) {
+    // Capture existing round IDs before migration (these are pre-R3 rounds)
+    const existingRoundIds = (db.query('SELECT id FROM rounds').all() as { id: string }[]).map((r) => r.id);
+
+    // New rounds default to R3 format
     db.exec("ALTER TABLE rounds ADD COLUMN tab1_label TEXT NOT NULL DEFAULT 'Qualifying'");
     db.exec("ALTER TABLE rounds ADD COLUMN tab2_label TEXT NOT NULL DEFAULT 'Super Sprint'");
     db.exec("ALTER TABLE rounds ADD COLUMN tab3_label TEXT NOT NULL DEFAULT 'Endurance'");
     db.exec(`ALTER TABLE rounds ADD COLUMN classes TEXT NOT NULL DEFAULT '["junior","pro"]'`);
+
+    // Existing rounds keep R2 format
+    for (const id of existingRoundIds) {
+      db.query("UPDATE rounds SET tab2_label = 'Heats & Race 1', tab3_label = 'Final & Race 2', classes = ? WHERE id = ?")
+        .run(JSON.stringify(['women', 'junior', 'pro-am', 'pro']), id);
+    }
   }
 
   // Migration: assign orphan sessions to "Round 2"

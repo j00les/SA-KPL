@@ -31,21 +31,21 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
           <table className="w-full text-xs">
             <thead>
               <tr className="text-left text-gray-500 uppercase tracking-wide">
-                <th className="pb-1.5 pr-2 font-medium">Pos</th>
+                <th className="pb-1.5 pr-3 font-medium w-10">Pos</th>
                 <th className="pb-1.5 pr-2 font-medium">Driver</th>
-                <th className="pb-1.5 font-medium text-right">Gap</th>
+                <th className="pb-1.5 font-medium text-right w-20">Gap</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((r) => (
                 <tr key={r.driverId} className="border-t border-[#2A2A2A]">
-                  <td className="py-1.5 pr-2 font-bold text-gray-100">
+                  <td className="py-1.5 pr-3 font-bold text-gray-100 w-10">
                     {r.position ?? '—'}
                   </td>
-                  <td className="py-1.5 pr-2 font-medium text-gray-300 truncate max-w-[120px]">
+                  <td className="py-1.5 pr-2 font-medium text-gray-300">
                     {r.driverName}
                   </td>
-                  <td className="py-1.5 text-right tabular-nums text-gray-400">
+                  <td className="py-1.5 text-right tabular-nums text-gray-400 w-20">
                     {r.gap || '—'}
                   </td>
                 </tr>
