@@ -48,11 +48,32 @@ export interface RaceSession {
 
 export type Session = QualifyingSession | RaceSession;
 
-export interface KPLRound2Data {
+export interface KPLData {
   qualifying: QualifyingSession[];
   heatsAndRace1: RaceSession[];
   finalAndRace2: RaceSession[];
 }
+
+export interface Round {
+  id: string;
+  name: string;
+  tabLabels: [string, string, string];
+  classes: RaceClass[];
+}
+
+export interface RoundAddPayload {
+  name: string;
+  tabLabels?: [string, string, string];
+  classes?: RaceClass[];
+}
+
+export interface RoundUpdatePayload {
+  roundId: string;
+  name?: string;
+  tabLabels?: [string, string, string];
+  classes?: RaceClass[];
+}
+export interface RoundDeletePayload { roundId: string }
 
 // Socket event payloads
 export interface RaceSavePayload {
@@ -75,4 +96,22 @@ export interface DriverAddPayload {
 export interface DriverRemovePayload {
   driverId: string;
   raceId: string;
+}
+
+export interface SessionUpdateLabelPayload {
+  raceId: string;
+  label: string;
+}
+
+export interface SessionAddPayload {
+  category: 'qualifying' | 'heatsAndRace1' | 'finalAndRace2';
+  type: SessionType;
+  raceClass: RaceClass;
+  label: string;
+  roundId: string;
+}
+
+export interface SessionUpdateClassPayload {
+  raceId: string;
+  raceClass: RaceClass;
 }

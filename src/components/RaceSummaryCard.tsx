@@ -18,39 +18,35 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
   const content = (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <h3 className="text-sm font-bold text-gray-900">{session.label}</h3>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2A2A2A] carbon-texture">
+        <h3 className="text-sm font-bold text-gray-100">{session.label}</h3>
         <StatusBadge status={session.status} />
       </div>
 
       {/* Results */}
       <div className="px-4 py-3">
         {sorted.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">No results yet</p>
+          <p className="text-sm text-gray-500 italic">No results yet</p>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-gray-400 uppercase tracking-wide">
+              <tr className="text-left text-gray-500 uppercase tracking-wide">
                 <th className="pb-1.5 pr-2 font-medium">Pos</th>
                 <th className="pb-1.5 pr-2 font-medium">Driver</th>
-                <th className="pb-1.5 pr-2 font-medium text-right">Best Lap</th>
-                <th className="pb-1.5 font-medium text-right">Total</th>
+                <th className="pb-1.5 font-medium text-right">Gap</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((r) => (
-                <tr key={r.driverId} className="border-t border-gray-50">
-                  <td className="py-1.5 pr-2 font-bold text-gray-900">
+                <tr key={r.driverId} className="border-t border-[#2A2A2A]">
+                  <td className="py-1.5 pr-2 font-bold text-gray-100">
                     {r.position ?? '—'}
                   </td>
-                  <td className="py-1.5 pr-2 font-medium text-gray-700 truncate max-w-[120px]">
+                  <td className="py-1.5 pr-2 font-medium text-gray-300 truncate max-w-[120px]">
                     {r.driverName}
                   </td>
-                  <td className="py-1.5 pr-2 text-right tabular-nums text-gray-600">
-                    {r.bestLap || '—'}
-                  </td>
-                  <td className="py-1.5 text-right tabular-nums text-gray-600">
-                    {r.totalTime || '—'}
+                  <td className="py-1.5 text-right tabular-nums text-gray-400">
+                    {r.gap || '—'}
                   </td>
                 </tr>
               ))}
@@ -65,7 +61,7 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
     return (
       <Link
         href={`/race/${session.id}`}
-        className="block rounded-lg bg-white shadow-sm overflow-hidden active:bg-gray-50 transition-colors"
+        className="block rounded-lg bg-[#1A1A1A] card-clip overflow-hidden active:bg-[#222] transition-colors"
         style={{ borderLeft: `4px solid ${classColor}` }}
       >
         {content}
@@ -75,7 +71,7 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
 
   return (
     <div
-      className="rounded-lg bg-white shadow-sm overflow-hidden"
+      className="rounded-lg bg-[#1A1A1A] card-clip overflow-hidden"
       style={{ borderLeft: `4px solid ${classColor}` }}
     >
       {content}

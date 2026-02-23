@@ -1,105 +1,87 @@
 import { Server as SocketServer } from 'socket.io';
-import { loadData, saveData, findSession, findSessionCategory } from './storage';
+import * as db from './db';
 import {
-  KPLRound2Data,
   RaceSavePayload,
   QualifyingSavePayload,
   DriverAddPayload,
   DriverRemovePayload,
-  QualifyingSession,
-  RaceSession,
-  Driver,
+  SessionUpdateLabelPayload,
+  SessionAddPayload,
+  SessionUpdateClassPayload,
+  RoundAddPayload,
+  RoundUpdatePayload,
+  RoundDeletePayload,
 } from './types';
 
-let data: KPLRound2Data;
-
 export function initSocketServer(io: SocketServer) {
-  data = loadData();
-
   io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id} (${io.engine.clientsCount} total)`);
 
-    // Send full state on connect
-    socket.emit('data:fullState', data);
     io.emit('connection:count', { count: io.engine.clientsCount });
 
-    // Handle full state request
-    socket.on('data:requestFull', () => {
-      socket.emit('data:fullState', data);
+    // --- Round events ---
+
+    socket.on('round:list', () => {
+      socket.emit('round:listResult', db.getRounds());
     });
 
-    // Save race/heat/final results
+    socket.on('round:add', (payload: RoundAddPayload) => {
+      db.addRound(payload.name, payload.tabLabels, payload.classes);
+      io.emit('round:listResult', db.getRounds());
+    });
+
+    socket.on('round:update', (payload: RoundUpdatePayload) => {
+      const { roundId, ...updates } = payload;
+      db.updateRound(roundId, updates);
+      io.emit('round:listResult', db.getRounds());
+    });
+
+    socket.on('round:delete', (payload: RoundDeletePayload) => {
+      db.deleteRound(payload.roundId);
+      io.emit('round:listResult', db.getRounds());
+    });
+
+    // --- Data events ---
+
+    socket.on('data:requestFull', (payload?: { roundId?: string }) => {
+      socket.emit('data:fullState', db.getFullState(payload?.roundId));
+    });
+
     socket.on('race:save', (payload: RaceSavePayload) => {
-      const category = findSessionCategory(data, payload.raceId);
-      if (!category || category === 'qualifying') return;
-
-      const sessions = data[category] as RaceSession[];
-      const session = sessions.find((s) => s.id === payload.raceId);
-      if (!session) return;
-
-      session.results = payload.results;
-      session.status = payload.status;
-      saveData(data);
-
+      db.saveRaceResults(payload.raceId, payload.results, payload.status);
       io.emit('race:saved', { raceId: payload.raceId, results: payload.results, status: payload.status });
     });
 
-    // Save qualifying results
     socket.on('qualifying:save', (payload: QualifyingSavePayload) => {
-      const session = data.qualifying.find((s) => s.id === payload.raceId);
-      if (!session) return;
-
-      session.results = payload.results;
-      session.status = payload.status;
-      saveData(data);
-
+      db.saveQualifyingResults(payload.raceId, payload.results, payload.status);
       io.emit('qualifying:saved', { raceId: payload.raceId, results: payload.results, status: payload.status });
     });
 
-    // Add driver to a session
     socket.on('driver:add', (payload: DriverAddPayload) => {
-      const newDriver: Driver = {
-        id: `added-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        name: payload.name,
-        isTeam: false,
-      };
-
-      const allArrays: (QualifyingSession[] | RaceSession[])[] = [
-        data.qualifying,
-        data.heatsAndRace1,
-        data.finalAndRace2,
-      ];
-
-      for (const arr of allArrays) {
-        const session = arr.find((s) => s.id === payload.raceId);
-        if (session) {
-          session.drivers.push(newDriver);
-          saveData(data);
-          io.emit('driver:added', { driver: newDriver, raceId: payload.raceId });
-          return;
-        }
-      }
+      const driver = db.addDriver(payload.raceId, payload.name);
+      io.emit('driver:added', { driver, raceId: payload.raceId });
     });
 
-    // Remove driver from a session
     socket.on('driver:remove', (payload: DriverRemovePayload) => {
-      const allArrays: (QualifyingSession[] | RaceSession[])[] = [
-        data.qualifying,
-        data.heatsAndRace1,
-        data.finalAndRace2,
-      ];
+      db.removeDriver(payload.raceId, payload.driverId);
+      io.emit('driver:removed', { driverId: payload.driverId, raceId: payload.raceId });
+    });
 
-      for (const arr of allArrays) {
-        const session = arr.find((s) => s.id === payload.raceId);
-        if (session) {
-          session.drivers = session.drivers.filter((d) => d.id !== payload.driverId);
-          // Also remove their results
-          session.results = session.results.filter((r) => r.driverId !== payload.driverId);
-          saveData(data);
-          io.emit('driver:removed', { driverId: payload.driverId, raceId: payload.raceId });
-          return;
-        }
-      }
+    socket.on('session:add', (payload: SessionAddPayload) => {
+      db.addSession(payload.category, payload.type, payload.raceClass, payload.label, payload.roundId);
+      const roundId = payload.roundId;
+      io.emit('data:fullState', db.getFullState(roundId));
+    });
+
+    socket.on('session:updateClass', (payload: SessionUpdateClassPayload) => {
+      db.updateSessionClass(payload.raceId, payload.raceClass);
+      const roundId = db.getRoundIdForSession(payload.raceId);
+      io.emit('data:fullState', db.getFullState(roundId ?? undefined));
+    });
+
+    socket.on('session:updateLabel', (payload: SessionUpdateLabelPayload) => {
+      db.updateSessionLabel(payload.raceId, payload.label);
+      io.emit('session:labelUpdated', { raceId: payload.raceId, label: payload.label });
     });
 
     socket.on('disconnect', () => {

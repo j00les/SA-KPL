@@ -1,0 +1,25 @@
+services:
+  kpl:
+    build: .
+    container_name: kpl
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - kpl_data:/app/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kpl.rule=Host(`kpl.speednadrenaline.com`)"
+      - "traefik.http.routers.kpl.entrypoints=websecure"
+      - "traefik.http.routers.kpl.tls.certresolver=letsencrypt"
+      - "traefik.http.services.kpl.loadbalancer.server.port=3000"
+    networks:
+      - traefik_web
+    restart: unless-stopped
+
+networks:
+  traefik_web:
+    external: true
+
+volumes:
+  kpl_data:

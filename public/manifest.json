@@ -1,10 +1,10 @@
 {
-  "name": "KPL Round 2 — Race Timing",
-  "short_name": "KPL R2",
-  "description": "Kart.Inc Pro League Round 2 race timing system",
+  "name": "KPL Race Timing",
+  "short_name": "KPL",
+  "description": "Kart.Inc Pro League race timing system",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#2D2D2D",
+  "background_color": "#0D0D0D",
   "theme_color": "#E10600",
   "orientation": "portrait",
   "icons": [

@@ -23,7 +23,7 @@ export default function AddDriverInline({ onAdd }: AddDriverInlineProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex h-12 w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-300 text-sm font-medium text-gray-400 transition-colors hover:border-gray-400 hover:text-gray-500"
+        className="flex h-12 w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-[#333] text-sm font-medium text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-400"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -53,12 +53,12 @@ export default function AddDriverInline({ onAdd }: AddDriverInlineProps) {
             setIsOpen(false);
           }
         }}
-        className="h-12 flex-1 rounded-md border border-gray-200 bg-white px-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        className="h-12 flex-1 rounded-md border border-[#333] bg-[#141414] px-3 text-base text-gray-100 placeholder:text-gray-500 focus:border-[#FFE600] focus:ring-1 focus:ring-[#FFE600] focus:outline-none"
       />
       <button
         type="button"
         onClick={handleSubmit}
-        className="h-12 rounded-md bg-gray-800 px-4 text-sm font-medium text-white transition-colors hover:bg-gray-700 active:bg-gray-900"
+        className="h-12 rounded-md bg-[#2A2A2A] px-4 text-sm font-medium text-white transition-colors hover:bg-[#333] active:bg-[#444]"
       >
         Add
       </button>
@@ -68,7 +68,7 @@ export default function AddDriverInline({ onAdd }: AddDriverInlineProps) {
           setName('');
           setIsOpen(false);
         }}
-        className="flex h-12 w-12 items-center justify-center rounded-md text-gray-400 transition-colors hover:text-gray-600"
+        className="flex h-12 w-12 items-center justify-center rounded-md text-gray-500 transition-colors hover:text-gray-300"
         aria-label="Cancel"
       >
         <svg

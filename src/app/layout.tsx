@@ -14,13 +14,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'KPL Round 2 — Race Timing',
-  description: 'Kart.Inc Pro League Round 2 race timing system',
+  title: 'KPL Race Timing',
+  description: 'Kart.Inc Pro League race timing system',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'KPL R2',
+    title: 'KPL',
   },
 };
 
@@ -29,7 +33,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#2D2D2D',
+  themeColor: '#0D0D0D',
 };
 
 export default function RootLayout({
