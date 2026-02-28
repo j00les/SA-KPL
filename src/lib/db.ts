@@ -129,6 +129,9 @@ export function initDB() {
     db.exec('ALTER TABLE sessions ADD COLUMN is_endurance BOOLEAN DEFAULT 0');
   }
 
+  // Migration: mark existing finalAndRace2 sessions as endurance
+  db.query('UPDATE sessions SET is_endurance = 1 WHERE category = ?').run('finalAndRace2');
+
   console.log('SQLite database initialized at', DB_PATH);
 }
 
@@ -291,12 +294,8 @@ export function addSession(category: string, type: SessionType, raceClass: RaceC
   const id = `session-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const maxOrder = (db.query('SELECT MAX(sort_order) as m FROM sessions WHERE category = ?').get(category) as { m: number | null })?.m ?? -1;
 
-  // Determine if endurance: category is finalAndRace2 AND round's tab3_label contains "Endurance"
-  let isEndurance = false;
-  if (category === 'finalAndRace2' && roundId) {
-    const round = db.query('SELECT tab3_label FROM rounds WHERE id = ?').get(roundId) as { tab3_label: string } | null;
-    isEndurance = round?.tab3_label?.toLowerCase().includes('endurance') ?? false;
-  }
+  // Determine if endurance: category is finalAndRace2 (tab 3 is always endurance)
+  const isEndurance = category === 'finalAndRace2';
 
   db.query('INSERT INTO sessions (id, type, race_class, label, category, status, sort_order, round_id, is_endurance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
     id,
