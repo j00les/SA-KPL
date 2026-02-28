@@ -33,7 +33,9 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
               <tr className="text-left text-gray-500 uppercase tracking-wide">
                 <th className="pb-1.5 pr-3 font-medium w-10">Pos</th>
                 <th className="pb-1.5 pr-2 font-medium">Driver</th>
-                <th className="pb-1.5 font-medium text-right w-20">Gap</th>
+                <th className="pb-1.5 font-medium text-right w-20">
+                  {session.isEndurance ? 'Laps' : 'Gap'}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -46,7 +48,7 @@ export default function RaceSummaryCard({ session, editable = false }: RaceSumma
                     {r.driverName}
                   </td>
                   <td className="py-1.5 text-right tabular-nums text-gray-400 w-20">
-                    {r.gap || '—'}
+                    {session.isEndurance ? (r.lapCount ?? '—') : (r.gap || '—')}
                   </td>
                 </tr>
               ))}

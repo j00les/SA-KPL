@@ -8,13 +8,16 @@ interface DriverResultFormProps {
   driver: Driver;
   raceClass: RaceClass;
   isQualifying: boolean;
+  isEndurance?: boolean;
   position: number | null;
   result: {
     bestLap: string;
     totalTime: string;
     gap: string;
+    lapCount?: number;
+    teamLapCount?: number;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | number) => void;
   onRemove?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
@@ -24,6 +27,7 @@ export default function DriverResultForm({
   driver,
   raceClass,
   isQualifying,
+  isEndurance,
   position,
   result,
   onChange,
@@ -141,7 +145,7 @@ export default function DriverResultForm({
         )}
 
         {/* Gap (race only, P2+ only) */}
-        {!isQualifying && position !== null && position > 1 && (
+        {!isQualifying && !isEndurance && position !== null && position > 1 && (
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Gap</label>
             <input
@@ -153,6 +157,37 @@ export default function DriverResultForm({
               className="h-12 w-full rounded-md border border-[#333] bg-[#141414] px-3 font-mono text-base font-medium text-gray-100 placeholder:text-gray-600 focus:border-[#FFE600] focus:ring-1 focus:ring-[#FFE600] focus:outline-none"
             />
           </div>
+        )}
+
+        {/* Lap count (endurance only) */}
+        {!isQualifying && isEndurance && (
+          <>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Laps</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="0"
+                min="0"
+                value={result.lapCount ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d*$/.test(val)) {
+                    onChange('lapCount', val ? parseInt(val) : 0);
+                  }
+                }}
+                className="h-12 w-full rounded-md border border-[#333] bg-[#141414] px-3 font-mono text-base font-medium text-gray-100 placeholder:text-gray-600 focus:border-[#FFE600] focus:ring-1 focus:ring-[#FFE600] focus:outline-none"
+              />
+            </div>
+
+            {/* Team Total display */}
+            <div className="flex flex-col gap-1 pt-1 border-t border-[#2A2A2A]">
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wide">Team Total</label>
+              <div className="h-12 flex items-center px-3 bg-[#141414] rounded-md border border-[#333] text-gray-400 font-mono">
+                {result.teamLapCount ?? 0} laps
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>

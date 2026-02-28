@@ -111,6 +111,24 @@ export function initDB() {
     console.log(`Migrated ${orphanCount} orphan sessions to "Round 2" (${roundId})`);
   }
 
+  // Migration: add lap count columns to results
+  const resultsCols = db.query("PRAGMA table_info(results)").all() as { name: string }[];
+  const hasLapCount = resultsCols.some((c) => c.name === 'lap_count');
+  if (!hasLapCount) {
+    db.exec('ALTER TABLE results ADD COLUMN lap_count INTEGER DEFAULT 0');
+  }
+  const hasTeamLapCount = resultsCols.some((c) => c.name === 'team_lap_count');
+  if (!hasTeamLapCount) {
+    db.exec('ALTER TABLE results ADD COLUMN team_lap_count INTEGER DEFAULT 0');
+  }
+
+  // Migration: add is_endurance flag to sessions
+  const sessionsCols = db.query("PRAGMA table_info(sessions)").all() as { name: string }[];
+  const hasIsEndurance = sessionsCols.some((c) => c.name === 'is_endurance');
+  if (!hasIsEndurance) {
+    db.exec('ALTER TABLE sessions ADD COLUMN is_endurance BOOLEAN DEFAULT 0');
+  }
+
   console.log('SQLite database initialized at', DB_PATH);
 }
 
@@ -193,6 +211,7 @@ export function getFullState(roundId?: string): KPLData {
     category: string;
     status: SessionStatus;
     round_id: string | null;
+    is_endurance: number;
   }[];
 
   const qualifying: QualifyingSession[] = [];
@@ -226,13 +245,15 @@ export function getFullState(roundId?: string): KPLData {
         status: s.status,
       });
     } else {
-      const results = db.query('SELECT driver_id, driver_name, position, best_lap, total_time, gap FROM results WHERE session_id = ? ORDER BY position NULLS LAST').all(s.id) as {
+      const results = db.query('SELECT driver_id, driver_name, position, best_lap, total_time, gap, lap_count, team_lap_count FROM results WHERE session_id = ? ORDER BY position NULLS LAST').all(s.id) as {
         driver_id: string;
         driver_name: string;
         position: number | null;
         best_lap: string;
         total_time: string;
         gap: string;
+        lap_count: number;
+        team_lap_count: number;
       }[];
 
       const session: RaceSession = {
@@ -248,8 +269,11 @@ export function getFullState(roundId?: string): KPLData {
           bestLap: r.best_lap,
           totalTime: r.total_time,
           gap: r.gap,
+          lapCount: r.lap_count,
+          teamLapCount: r.team_lap_count,
         })),
         status: s.status,
+        isEndurance: Boolean(s.is_endurance),
       };
 
       if (s.category === 'heatsAndRace1') {
@@ -267,7 +291,14 @@ export function addSession(category: string, type: SessionType, raceClass: RaceC
   const id = `session-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const maxOrder = (db.query('SELECT MAX(sort_order) as m FROM sessions WHERE category = ?').get(category) as { m: number | null })?.m ?? -1;
 
-  db.query('INSERT INTO sessions (id, type, race_class, label, category, status, sort_order, round_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(
+  // Determine if endurance: category is finalAndRace2 AND round's tab3_label contains "Endurance"
+  let isEndurance = false;
+  if (category === 'finalAndRace2' && roundId) {
+    const round = db.query('SELECT tab3_label FROM rounds WHERE id = ?').get(roundId) as { tab3_label: string } | null;
+    isEndurance = round?.tab3_label?.toLowerCase().includes('endurance') ?? false;
+  }
+
+  db.query('INSERT INTO sessions (id, type, race_class, label, category, status, sort_order, round_id, is_endurance) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
     id,
     type,
     raceClass,
@@ -276,6 +307,7 @@ export function addSession(category: string, type: SessionType, raceClass: RaceC
     'not-started',
     maxOrder + 1,
     roundId ?? null,
+    isEndurance ? 1 : 0,
   );
   return id;
 }
@@ -324,10 +356,19 @@ export function saveRaceResults(raceId: string, results: RaceResult[], status: S
     db.query('UPDATE sessions SET status = ? WHERE id = ?').run(status, raceId);
     db.query('DELETE FROM results WHERE session_id = ?').run(raceId);
 
-    const insert = db.query('INSERT INTO results (session_id, driver_id, driver_name, position, best_lap, total_time, gap) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    const insert = db.query('INSERT INTO results (session_id, driver_id, driver_name, position, best_lap, total_time, gap, lap_count, team_lap_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
     for (const r of results) {
-      insert.run(raceId, r.driverId, r.driverName, r.position, r.bestLap, r.totalTime, r.gap);
+      insert.run(raceId, r.driverId, r.driverName, r.position, r.bestLap, r.totalTime, r.gap, r.lapCount ?? 0, r.teamLapCount ?? 0);
     }
   });
   tx();
+}
+
+export function getSessionIsEndurance(sessionId: string): boolean {
+  const row = db.query('SELECT is_endurance FROM sessions WHERE id = ?').get(sessionId) as { is_endurance: number } | null;
+  return Boolean(row?.is_endurance);
+}
+
+export function setSessionEndurance(sessionId: string, isEndurance: boolean) {
+  db.query('UPDATE sessions SET is_endurance = ? WHERE id = ?').run(isEndurance ? 1 : 0, sessionId);
 }

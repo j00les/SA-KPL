@@ -24,6 +24,8 @@ export interface RaceResult {
   bestLap: string;
   totalTime: string; // "7:12.500"
   gap: string; // "+5.700" or "--"
+  lapCount?: number; // Individual driver lap count for endurance
+  teamLapCount?: number; // Team total lap count for endurance
 }
 
 export interface QualifyingSession {
@@ -44,6 +46,7 @@ export interface RaceSession {
   drivers: Driver[];
   results: RaceResult[];
   status: SessionStatus;
+  isEndurance: boolean; // Flag for endurance sessions
 }
 
 export type Session = QualifyingSession | RaceSession;

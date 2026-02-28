@@ -22,6 +22,8 @@ interface FormResult {
   bestLap: string;
   totalTime: string;
   gap: string;
+  lapCount?: number;
+  teamLapCount?: number;
 }
 
 export default function RaceInputPage() {
@@ -38,6 +40,7 @@ export default function RaceInputPage() {
   const [initialized, setInitialized] = useState(false);
   const [editingLabel, setEditingLabel] = useState(false);
   const [labelDraft, setLabelDraft] = useState('');
+  const [isEndurance, setIsEndurance] = useState(false);
 
   const session = data ? getSession(raceId) : null;
   const isQualifying = session?.type === 'qualifying';
@@ -46,17 +49,24 @@ export default function RaceInputPage() {
   useEffect(() => {
     if (!session || initialized) return;
 
+    // Only set isEndurance for race sessions
+    if (!isQualifying) {
+      setIsEndurance((session as any).isEndurance ?? false);
+    }
+
     const formResults: FormResult[] = session.drivers.map((driver) => {
       const existing = session.results.find((r) => r.driverId === driver.id);
       if (existing) {
         const totalTime = isQualifying ? '' : (existing as RaceResult).totalTime || '';
-        const gap = isQualifying ? '' : (existing as RaceResult).gap || '';
+        const gap = isQualifying || (!isQualifying && (session as any).isEndurance) ? '' : (existing as RaceResult).gap || '';
         return {
           driverId: driver.id,
           driverName: driver.name,
           bestLap: existing.bestLap || '',
           totalTime,
           gap: gap === '--' ? '' : gap, // P1 gap is "--", show empty in form
+          lapCount: (existing as RaceResult).lapCount,
+          teamLapCount: (existing as RaceResult).teamLapCount,
         };
       }
       return {
@@ -65,6 +75,8 @@ export default function RaceInputPage() {
         bestLap: '',
         totalTime: '',
         gap: '',
+        lapCount: 0,
+        teamLapCount: 0,
       };
     });
 
@@ -77,7 +89,7 @@ export default function RaceInputPage() {
     setResults(formResults);
     setStatus(session.status);
     setInitialized(true);
-  }, [session, initialized]);
+  }, [session, initialized, isQualifying]);
 
   // Sync newly added/removed drivers — use functional updater to avoid stale closure
   useEffect(() => {
@@ -106,14 +118,38 @@ export default function RaceInputPage() {
           bestLap: '',
           totalTime: '',
           gap: '',
+          lapCount: 0,
+          teamLapCount: 0,
         })),
       ];
     });
   }, [session?.drivers, initialized]);
 
-  // Compute positions: qualifying = sorted by bestLap time, race = card order
+  // Compute positions: qualifying = sorted by bestLap time, race = card order or endurance lap count
+  const computeEndurancePositions = useCallback(
+    (list: FormResult[]): Map<string, number | null> => {
+      const withLaps = list
+        .map((r) => ({ id: r.driverId, laps: r.lapCount ?? 0 }))
+        .sort((a, b) => b.laps - a.laps); // Highest laps first
+
+      const positions = new Map<string, number | null>();
+      list.forEach((r) => positions.set(r.driverId, null));
+      withLaps.forEach((r, i) => {
+        // Handle ties: if same lap count as previous, same position
+        const prevLaps = i > 0 ? withLaps[i - 1].laps : -1;
+        const pos = r.laps === prevLaps ? positions.get(withLaps[i - 1].id)! : i + 1;
+        positions.set(r.id, pos);
+      });
+      return positions;
+    },
+    []
+  );
+
   const computePositions = useCallback(
     (list: FormResult[]): Map<string, number | null> => {
+      if (isEndurance) {
+        return computeEndurancePositions(list);
+      }
       if (!isQualifying) {
         // Race: position = card order (index + 1)
         const positions = new Map<string, number | null>();
@@ -131,8 +167,26 @@ export default function RaceInputPage() {
       withTime.forEach((r, i) => positions.set(r.id, i + 1));
       return positions;
     },
-    [isQualifying]
+    [isQualifying, isEndurance, computeEndurancePositions]
   );
+
+  // Calculate team lap totals for endurance
+  const calculateTeamTotals = useCallback(
+    (list: FormResult[]): Map<string, number> => {
+      const totals = new Map<string, number>();
+      let totalLaps = 0;
+      list.forEach((r) => {
+        totalLaps += r.lapCount ?? 0;
+      });
+      list.forEach((r) => {
+        totals.set(r.driverId, totalLaps);
+      });
+      return totals;
+    },
+    []
+  );
+
+  const teamTotals = isEndurance ? calculateTeamTotals(results) : new Map<string, number>();
 
   const positions = computePositions(results);
 
@@ -156,12 +210,24 @@ export default function RaceInputPage() {
   }, []);
 
   const handleFieldChange = useCallback(
-    (driverId: string, field: string, value: string) => {
-      setResults((prev) =>
-        prev.map((r) => (r.driverId === driverId ? { ...r, [field]: value } : r))
-      );
+    (driverId: string, field: string, value: string | number) => {
+      setResults((prev) => {
+        const updated = prev.map((r) => {
+          if (r.driverId === driverId) {
+            const newResult = { ...r, [field]: value };
+            // Recalculate team totals if lapCount changed for endurance
+            if (isEndurance && field === 'lapCount') {
+              const tTeamTotal = calculateTeamTotals([...prev.map((pr) => pr.driverId === driverId ? newResult : pr)]);
+              newResult.teamLapCount = tTeamTotal.get(driverId) ?? 0;
+            }
+            return newResult;
+          }
+          return r;
+        });
+        return updated;
+      });
     },
-    []
+    [isEndurance, calculateTeamTotals]
   );
 
   const handleRemoveDriver = useCallback(
@@ -191,8 +257,13 @@ export default function RaceInputPage() {
       const hasAnyResult = results.some((r) => r.bestLap);
       const allComplete = results.every((r) => r.bestLap);
       autoStatus = allComplete ? 'completed' : hasAnyResult ? 'in-progress' : 'not-started';
+    } else if (isEndurance) {
+      // Endurance: complete when all drivers have lap counts
+      const hasLaps = results.some((r) => (r.lapCount ?? 0) > 0);
+      const allLaps = results.every((r) => (r.lapCount ?? 0) > 0);
+      autoStatus = allLaps && results.length > 0 ? 'completed' : hasLaps ? 'in-progress' : 'not-started';
     } else {
-      // Race: consider it started once we have drivers, completed once P2+ all have gaps
+      // Regular race: consider it started once we have drivers, completed once P2+ all have gaps
       const hasGaps = results.some((r, i) => i > 0 && r.gap);
       const allGaps = results.length <= 1 || results.every((r, i) => i === 0 || r.gap);
       autoStatus = allGaps && results.length > 0 ? 'completed' : hasGaps ? 'in-progress' : 'not-started';
@@ -206,6 +277,19 @@ export default function RaceInputPage() {
         bestLap: formatTime(r.bestLap),
       }));
       saveQualifyingResults(raceId, qualResults, autoStatus);
+    } else if (isEndurance) {
+      const tTeamTotals = calculateTeamTotals(results);
+      const enduranceResults: RaceResult[] = results.map((r) => ({
+        driverId: r.driverId,
+        driverName: r.driverName,
+        position: savedPositions.get(r.driverId) ?? null,
+        bestLap: '',
+        totalTime: '',
+        gap: '',
+        lapCount: r.lapCount ?? 0,
+        teamLapCount: tTeamTotals.get(r.driverId) ?? 0,
+      }));
+      saveRaceResults(raceId, enduranceResults, autoStatus);
     } else {
       const raceResults: RaceResult[] = results.map((r, i) => ({
         driverId: r.driverId,
@@ -222,7 +306,7 @@ export default function RaceInputPage() {
       setSaving(false);
       setStatus(autoStatus);
     }, 300);
-  }, [session, results, isQualifying, raceId, saveRaceResults, saveQualifyingResults, computePositions]);
+  }, [session, results, isQualifying, isEndurance, raceId, saveRaceResults, saveQualifyingResults, computePositions, calculateTeamTotals]);
 
   if (!data) {
     return (
@@ -338,6 +422,7 @@ export default function RaceInputPage() {
               driver={driver}
               raceClass={session.raceClass}
               isQualifying={isQualifying}
+              isEndurance={isEndurance}
               position={positions.get(result.driverId) ?? null}
               result={result}
               onChange={(field, value) =>
